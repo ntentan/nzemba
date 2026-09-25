@@ -1,6 +1,7 @@
 <?php
 
 namespace ntentan\nzemba;
+use ntentan\kaikai\backends\VolatileCache;
 use ntentan\kaikai\Cache;
 use ntentan\nzemba\exceptions\RepositoryException;
 use ntentan\utils\Text;
@@ -15,13 +16,13 @@ class Repository
 
     private string $table;
 
-    public function __construct(string $model, Generator $queryGenerator, Cache $cache)
+    public function __construct(string $model, Generator $queryGenerator, ?Cache $cache = null, string $table = null)
     {
         $this->model = $model;
         $this->queryGenerator = $queryGenerator;
-        $this->cache = $cache;
+        $this->cache = $cache ?? new VolatileCache();
         $parts = explode("\\", $model);
-        $this->table = Text::pluralize(Text::deCamelize(end($parts)));
+        $this->table = $table ?? Text::pluralize(Text::deCamelize(end($parts)));
     }
 
     private function getFields(): array

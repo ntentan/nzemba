@@ -1,4 +1,4 @@
-# ntentan/nzemba
+# ntentan/nzema
 
 A lightweight, repository-based ORM and data access library for the **ntentan** framework.
 
@@ -43,16 +43,14 @@ class User
 
 ```php
 use App\Models\User;
-use ntentan\kaikai\Cache;
 use ntentan\nzemba\Repository;
 use ntentan\nzemba\generators\Postgres;
 
 $pdo = new PDO('pgsql:host=localhost;dbname=myapp', 'username', 'password');
-$cache = new Cache(/* ... */);
 $generator = new Postgres($pdo);
 
 // Repository resolves table name to pluralized decamelized form (e.g., 'users')
-$userRepository = new Repository(User::class, $generator, $cache);
+$userRepository = new Repository(User::class, $generator);
 
 // Insert a record
 $userId = $userRepository->insert([
