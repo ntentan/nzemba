@@ -1,0 +1,111 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "74af0355956e4cbbea9e6e5bb836800c",
+    "packages": [
+        {
+            "name": "ntentan/kaikai",
+            "version": "v0.7.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ntentan/kaikai.git",
+                "reference": "3567e7808ca7442e8122c2875a70b1029c7a893f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ntentan/kaikai/zipball/3567e7808ca7442e8122c2875a70b1029c7a893f",
+                "reference": "3567e7808ca7442e8122c2875a70b1029c7a893f",
+                "shasum": ""
+            },
+            "require-dev": {
+                "mikey179/vfsstream": "@stable",
+                "php-mock/php-mock-phpunit": "@stable",
+                "phpstan/phpstan": "^2.2",
+                "phpunit/phpunit": "@stable"
+            },
+            "suggest": {
+                "ext-memcached": "Required for Memcached cache backend",
+                "ext-redis": "Required for Redis cache backend with PhpRedis driver",
+                "predis/predis": "Required for Redis cache backend with Predis driver"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ntentan\\kaikai\\": "src/",
+                    "ntentan\\kaikai\\tests\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "ekow",
+                    "email": "your@email.here"
+                }
+            ],
+            "description": "Caching for Ntentan Framework",
+            "support": {
+                "issues": "https://github.com/ntentan/kaikai/issues",
+                "source": "https://github.com/ntentan/kaikai/tree/v0.7.5"
+            },
+            "time": "2026-09-24T01:59:30+00:00"
+        },
+        {
+            "name": "ntentan/utils",
+            "version": "v0.13.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ntentan/utils.git",
+                "reference": "c840347e219f7873f09611922b2401947c1bbaec"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ntentan/utils/zipball/c840347e219f7873f09611922b2401947c1bbaec",
+                "reference": "c840347e219f7873f09611922b2401947c1bbaec",
+                "shasum": ""
+            },
+            "require-dev": {
+                "mikey179/vfsstream": "@stable",
+                "php-mock/php-mock-phpunit": "^2",
+                "phpunit/phpunit": "@stable"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ntentan\\utils\\": "src/",
+                    "ntentan\\utils\\tests\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ekow Abaka Ainooson",
+                    "email": "jainooson@gmail.com"
+                }
+            ],
+            "description": "Common utility functions shared accross the ntentan framework.",
+            "support": {
+                "issues": "https://github.com/ntentan/utils/issues",
+                "source": "https://github.com/ntentan/utils/tree/v0.13.2"
+            },
+            "time": "2026-01-02T05:56:24+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

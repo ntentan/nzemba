@@ -1,0 +1,21 @@
+{
+    "name": "ntentan/nzemba",
+    "description": "A repository based ORM for ntentan.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "ntentan\\nzemba\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "James Ekow Abaka Ainooson",
+            "email": "jainooson@gmail.com"
+        }
+    ],
+    "require": {
+        "ntentan/utils": "^0.13.2",
+        "ntentan/kaikai": "^0.7.5"
+    }
+}
