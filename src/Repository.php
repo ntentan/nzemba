@@ -7,13 +7,12 @@ use ntentan\nzemba\exceptions\RepositoryException;
 use ntentan\utils\Text;
 use ntentan\nzemba\generators\Generator;
 
+
 class Repository
 {
     private string $model;
     private Cache $cache;
-
     private Generator $queryGenerator;
-
     private string $table;
 
     public function __construct(string $model, Generator $queryGenerator, ?Cache $cache = null, string $table = null)
@@ -41,6 +40,7 @@ class Repository
                         'is_required' => !$type->allowsNull()
                     ];
                 }
+                return $fields;
             }
         );
     }
