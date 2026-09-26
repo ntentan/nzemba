@@ -17,5 +17,16 @@
     "require": {
         "ntentan/utils": "^0.13.2",
         "ntentan/kaikai": "^0.7.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.3"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ntentan\\nzemba\\tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
     }
 }

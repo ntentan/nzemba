@@ -15,11 +15,11 @@ class Repository
     private Generator $queryGenerator;
     private string $table;
 
-    public function __construct(string $model, Generator $queryGenerator, ?Cache $cache = null, string $table = null)
+    public function __construct(string $model, Generator $queryGenerator, ?Cache $cache = null, ?string $table = null)
     {
         $this->model = $model;
         $this->queryGenerator = $queryGenerator;
-        $this->cache = $cache ?? new VolatileCache();
+        $this->cache = $cache ?? new Cache(new VolatileCache());
         $parts = explode("\\", $model);
         $this->table = $table ?? Text::pluralize(Text::deCamelize(end($parts)));
     }
@@ -36,8 +36,8 @@ class Repository
                     $type = $property->getType();
                     $fields[] = [
                         'name' => $property->name,
-                        'type' => $type->getName(),
-                        'is_required' => !$type->allowsNull()
+                        'type' => $type ? (string)$type : null,
+                        'is_required' => $type ? !$type->allowsNull() : false
                     ];
                 }
                 return $fields;
@@ -56,6 +56,17 @@ class Repository
         return $data;
     }
 
+    private function getDataFromObject($item): array
+    {
+        $data = [];
+        $fields = $this->getFields();
+        foreach($fields as $field) {
+            $name = $field['name'];
+            $data[$name] = $item->$name ?? null;
+        }
+        return $data;
+    }
+
     public function insert(mixed $item): int
     {
         if (is_array($item)) {
@@ -63,9 +74,9 @@ class Repository
         } else if (is_object($item)) {
             $data = $this->getDataFromObject($item);
         } else {
-            throw new RepositoryException("Unknown datatype for");
+            throw new RepositoryException("Unknown datatype for repository insert");
         }
-        return $this->queryGenerator->insert($this->table, $item);
+        return $this->queryGenerator->insert($this->table, $data);
     }
 
     public static function getService(array $config): array
@@ -73,7 +84,8 @@ class Repository
         if(isset($config['dsn'])) {
             $driver = explode(":", $config['dsn'] ?? "", 2)[0];
             $queryGeneratorClass = match ($driver) {
-                'pgsql' => generators\Postgres::class
+                'pgsql' => generators\Postgres::class,
+                default => throw new RepositoryException("Unsupported database driver: {$driver}")
             };
         } else {
             throw new RepositoryException("Please specify a driver for the repository backend.");
@@ -81,7 +93,7 @@ class Repository
         return [
             generators\Generator::class => $queryGeneratorClass,
             \PDO::class => function () use ($config) {
-                return new \PDO($config['dsn'], $config['user'], $config['password']);
+                return new \PDO($config['dsn'], $config['user'] ?? null, $config['password'] ?? null);
             }
         ];
     }
