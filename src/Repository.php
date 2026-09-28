@@ -51,7 +51,9 @@ class Repository
         $fields = $this->getFields();
         foreach($fields as $field) {
             $name = $field['name'];
-            $data[$name] = $item[$name] ?? null;
+            if (isset($item[$name])) {
+                $data[$name] = $item[$name];
+            }
         }
         return $data;
     }
