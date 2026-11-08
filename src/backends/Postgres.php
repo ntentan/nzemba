@@ -1,8 +1,8 @@
 <?php
 
-namespace ntentan\nzemba\generators;
+namespace ntentan\nzemba\backends;
 
-class Postgres extends Generator
+class Postgres extends SqlDatabase
 {
     public function quoteIdentifier($identifier)
     {

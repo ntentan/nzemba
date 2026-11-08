@@ -1,8 +1,8 @@
 <?php
 
-namespace ntentan\nzemba\generators;
+namespace ntentan\nzemba\backends;
 
-abstract class Generator
+abstract class SqlDatabase implements Backend
 {
     private \PDO $pdo;
 
@@ -11,7 +11,7 @@ abstract class Generator
         $this->pdo = $pdo;
     }
 
-    public function insert(string $table, array $data): int
+    public function insert(string $table, array $data): string
     {
         $fields = array_keys($data);
         $query = "INSERT INTO {$this->quoteIdentifier($table)}("
@@ -22,6 +22,16 @@ abstract class Generator
         $statement = $this->pdo->prepare($query);
         $statement->execute($data);
         return $this->pdo->lastInsertId();
+    }
+
+    public function find(mixed $query): array
+    {
+
+    }
+
+    public function findOne(mixed $query): object
+    {
+        // TODO: Implement findFirst() method.
     }
 
     abstract public function quoteIdentifier($identifier);

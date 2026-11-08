@@ -3,22 +3,22 @@
 namespace ntentan\nzemba;
 use ntentan\kaikai\backends\VolatileCache;
 use ntentan\kaikai\Cache;
+use ntentan\nzemba\backends\Backend;
 use ntentan\nzemba\exceptions\RepositoryException;
 use ntentan\utils\Text;
-use ntentan\nzemba\generators\Generator;
 
 
 class Repository
 {
     private string $model;
     private Cache $cache;
-    private Generator $queryGenerator;
+    private Backend $backend;
     private string $table;
 
-    public function __construct(string $model, Generator $queryGenerator, ?Cache $cache = null, ?string $table = null)
+    public function __construct(string $model, Backend $backend, ?Cache $cache = null, ?string $table = null)
     {
         $this->model = $model;
-        $this->queryGenerator = $queryGenerator;
+        $this->backend = $backend;
         $this->cache = $cache ?? new Cache(new VolatileCache());
         $parts = explode("\\", $model);
         $this->table = $table ?? Text::pluralize(Text::deCamelize(end($parts)));
@@ -78,22 +78,32 @@ class Repository
         } else {
             throw new RepositoryException("Unknown datatype for repository insert");
         }
-        return $this->queryGenerator->insert($this->table, $data);
+        return $this->backend->insert($this->table, $data);
+    }
+
+    public function find(mixed $key): object
+    {
+        return $this->backend->find($key);
+    }
+
+    public function findOne(mixed $key): object
+    {
+        return $this->backend->findOne($key);
     }
 
     public static function getService(array $config): array
     {
         if(isset($config['dsn'])) {
             $driver = explode(":", $config['dsn'] ?? "", 2)[0];
-            $queryGeneratorClass = match ($driver) {
-                'pgsql' => generators\Postgres::class,
+            $repositoryBackendClass = match ($driver) {
+                'pgsql' => backends\Postgres::class,
                 default => throw new RepositoryException("Unsupported database driver: {$driver}")
             };
         } else {
             throw new RepositoryException("Please specify a driver for the repository backend.");
         }
         return [
-            generators\Generator::class => $queryGeneratorClass,
+            backends\Backend::class => $repositoryBackendClass,
             \PDO::class => function () use ($config) {
                 return new \PDO($config['dsn'], $config['user'] ?? null, $config['password'] ?? null);
             }
