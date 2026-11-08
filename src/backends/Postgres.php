@@ -2,9 +2,9 @@
 
 namespace ntentan\nzemba\backends;
 
-class Postgres extends SqlDatabase
+class Postgres implements SqlHelper
 {
-    public function quoteIdentifier($identifier)
+    public function quoteIdentifier(string $identifier): string
     {
         return "\"$identifier\"";
     }

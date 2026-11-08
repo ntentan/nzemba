@@ -81,21 +81,21 @@ class Repository
         return $this->backend->insert($this->table, $data);
     }
 
-    public function find(mixed $key): object
+    public function find(mixed $key = null): array
     {
-        return $this->backend->find($key);
+        return $this->backend->find($this->table, $key, $this->model);
     }
 
-    public function findOne(mixed $key): object
+    public function findOne(mixed $key = null): ?object
     {
-        return $this->backend->findOne($key);
+        return $this->backend->findOne($this->table, $key, $this->model);
     }
 
     public static function getService(array $config): array
     {
         if(isset($config['dsn'])) {
             $driver = explode(":", $config['dsn'] ?? "", 2)[0];
-            $repositoryBackendClass = match ($driver) {
+            $sqlHelperClass = match ($driver) {
                 'pgsql' => backends\Postgres::class,
                 default => throw new RepositoryException("Unsupported database driver: {$driver}")
             };
@@ -103,7 +103,8 @@ class Repository
             throw new RepositoryException("Please specify a driver for the repository backend.");
         }
         return [
-            backends\Backend::class => $repositoryBackendClass,
+            backends\Backend::class => backends\SqlDatabase::class,
+            backends\SqlHelper::class => $sqlHelperClass,
             \PDO::class => function () use ($config) {
                 return new \PDO($config['dsn'], $config['user'] ?? null, $config['password'] ?? null);
             }

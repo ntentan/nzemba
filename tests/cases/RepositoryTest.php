@@ -4,9 +4,11 @@ namespace ntentan\nzemba\tests\cases;
 
 use ntentan\kaikai\backends\VolatileCache;
 use ntentan\kaikai\Cache;
+use ntentan\nzemba\backends\Backend;
+use ntentan\nzemba\backends\Postgres;
+use ntentan\nzemba\backends\SqlDatabase;
+use ntentan\nzemba\backends\SqlHelper;
 use ntentan\nzemba\exceptions\RepositoryException;
-use ntentan\nzemba\generators\Generator;
-use ntentan\nzemba\generators\Postgres;
 use ntentan\nzemba\Repository;
 use ntentan\nzemba\tests\fixtures\UntypedModel;
 use ntentan\nzemba\tests\fixtures\User;
@@ -31,7 +33,7 @@ class RepositoryTest extends TestCase
 
     public function testDefaultTableNameDerivation(): void
     {
-        $generator = $this->createStub(Generator::class);
+        $generator = $this->createStub(Backend::class);
 
         $repoUser = new Repository(User::class, $generator);
         $this->assertEquals('users', $this->getPrivateProperty($repoUser, 'table'));
@@ -42,7 +44,7 @@ class RepositoryTest extends TestCase
 
     public function testCustomTableNameOverride(): void
     {
-        $generator = $this->createStub(Generator::class);
+        $generator = $this->createStub(Backend::class);
         $repo = new Repository(User::class, $generator, null, 'custom_users_table');
 
         $this->assertEquals('custom_users_table', $this->getPrivateProperty($repo, 'table'));
@@ -50,7 +52,7 @@ class RepositoryTest extends TestCase
 
     public function testDefaultAndCustomCache(): void
     {
-        $generator = $this->createStub(Generator::class);
+        $generator = $this->createStub(Backend::class);
 
         // Default cache
         $repoDefault = new Repository(User::class, $generator);
@@ -65,7 +67,7 @@ class RepositoryTest extends TestCase
 
     public function testGetFieldsExtractsMetadataAndCaches(): void
     {
-        $generator = $this->createStub(Generator::class);
+        $generator = $this->createStub(Backend::class);
         $cache = new Cache(new VolatileCache());
         $repo = new Repository(User::class, $generator, $cache);
 
@@ -89,7 +91,7 @@ class RepositoryTest extends TestCase
 
     public function testGetFieldsWithUntypedProperties(): void
     {
-        $generator = $this->createStub(Generator::class);
+        $generator = $this->createStub(Backend::class);
         $repo = new Repository(UntypedModel::class, $generator);
 
         $fields = $this->invokePrivateMethod($repo, 'getFields');
@@ -102,7 +104,7 @@ class RepositoryTest extends TestCase
 
     public function testInsertFromArrayFiltersAndMapsData(): void
     {
-        $generator = $this->createMock(Generator::class);
+        $generator = $this->createMock(Backend::class);
         $repo = new Repository(User::class, $generator);
 
         $inputData = [
@@ -112,16 +114,14 @@ class RepositoryTest extends TestCase
         ];
 
         $expectedData = [
-            'id' => null,
             'name' => 'Jane Doe',
             'email' => 'jane@example.com',
-            'age' => null
         ];
 
         $generator->expects($this->once())
             ->method('insert')
             ->with('users', $expectedData)
-            ->willReturn(101);
+            ->willReturn('101');
 
         $insertedId = $repo->insert($inputData);
         $this->assertEquals(101, $insertedId);
@@ -129,7 +129,7 @@ class RepositoryTest extends TestCase
 
     public function testInsertFromObjectMapsProperties(): void
     {
-        $generator = $this->createMock(Generator::class);
+        $generator = $this->createMock(Backend::class);
         $repo = new Repository(User::class, $generator);
 
         $user = new User();
@@ -147,7 +147,7 @@ class RepositoryTest extends TestCase
         $generator->expects($this->once())
             ->method('insert')
             ->with('users', $expectedData)
-            ->willReturn(102);
+            ->willReturn('102');
 
         $insertedId = $repo->insert($user);
         $this->assertEquals(102, $insertedId);
@@ -155,13 +155,36 @@ class RepositoryTest extends TestCase
 
     public function testInsertWithInvalidDataTypeThrowsException(): void
     {
-        $generator = $this->createStub(Generator::class);
+        $generator = $this->createStub(Backend::class);
         $repo = new Repository(User::class, $generator);
 
         $this->expectException(RepositoryException::class);
         $this->expectExceptionMessage('Unknown datatype for repository insert');
 
         $repo->insert('invalid string data');
+    }
+
+    public function testFindAndFindOneDelegateToBackend(): void
+    {
+        $backend = $this->createMock(Backend::class);
+        $repo = new Repository(User::class, $backend);
+
+        $user = new User();
+        $user->id = 1;
+        $user->name = 'Jane Doe';
+
+        $backend->expects($this->once())
+            ->method('find')
+            ->with('users', ['name' => 'Jane Doe'], User::class)
+            ->willReturn([$user]);
+
+        $backend->expects($this->once())
+            ->method('findOne')
+            ->with('users', ['id' => 1], User::class)
+            ->willReturn($user);
+
+        $this->assertSame([$user], $repo->find(['name' => 'Jane Doe']));
+        $this->assertSame($user, $repo->findOne(['id' => 1]));
     }
 
     public function testGetServiceWithPgsqlConfig(): void
@@ -172,8 +195,11 @@ class RepositoryTest extends TestCase
             'password' => 'secret'
         ]);
 
-        $this->assertArrayHasKey(Generator::class, $services);
-        $this->assertEquals(Postgres::class, $services[Generator::class]);
+        $this->assertArrayHasKey(Backend::class, $services);
+        $this->assertEquals(SqlDatabase::class, $services[Backend::class]);
+
+        $this->assertArrayHasKey(SqlHelper::class, $services);
+        $this->assertEquals(Postgres::class, $services[SqlHelper::class]);
 
         $this->assertArrayHasKey(\PDO::class, $services);
         $this->assertIsCallable($services[\PDO::class]);

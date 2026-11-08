@@ -1,4 +1,4 @@
-# ntentan/nzema
+# ntentan/nzemba
 
 A lightweight, repository-based ORM and data access library for the **ntentan** framework.
 
@@ -6,7 +6,8 @@ A lightweight, repository-based ORM and data access library for the **ntentan** 
 
 - **Repository Pattern**: Clean separation of domain models and database persistence.
 - **Model Reflection & Caching**: Automatic schema extraction and property caching using `ntentan/kaikai`.
-- **Driver-Agnostic Query Generation**: Pluggable SQL query generation (e.g., PostgreSQL support via `PostgresQueryGenerator`).
+- **Pluggable Storage Backends**: Extensible backend architecture (`Backend`) supporting SQL database engines (e.g., PostgreSQL support via `ntentan\nzemba\backends\Postgres`).
+- **Flexible Data Mapping**: Insert records directly from associative arrays or model objects, automatically mapping defined model properties.
 - **PDO Integration**: Seamless integration with PDO for prepared statements and data mapping.
 
 ## Requirements
@@ -44,24 +45,36 @@ class User
 ```php
 use App\Models\User;
 use ntentan\nzemba\Repository;
-use ntentan\nzemba\generators\Postgres;
+use ntentan\nzemba\backends\Postgres;
+use ntentan\nzemba\backends\SqlDatabase;
 
 $pdo = new PDO('pgsql:host=localhost;dbname=myapp', 'username', 'password');
-$generator = new Postgres($pdo);
+$backend = new SqlDatabase($pdo, new Postgres());
 
 // Repository resolves table name to pluralized decamelized form (e.g., 'users')
-$userRepository = new Repository(User::class, $generator);
+// An optional Cache and custom table name can also be provided
+$userRepository = new Repository(User::class, $backend);
 
-// Insert a record
+// Insert a record from an array
 $userId = $userRepository->insert([
     'name' => 'Jane Doe',
     'email' => 'jane@example.com'
 ]);
+
+// Or insert from a model object instance
+$user = new User();
+$user->name = 'John Doe';
+$user->email = 'john@example.com';
+$userId = $userRepository->insert($user);
+
+// Query records
+$users = $userRepository->find(['role' => 'admin']);
+$user = $userRepository->findOne($userId);
 ```
 
 ### 3. Service Container Configuration
 
-You can also use `Repository::getService()` helper for dependency injection wiring:
+You can also use the `Repository::getService()` helper for dependency injection wiring (providing bindings for `Backend::class` and `PDO::class`):
 
 ```php
 $services = Repository::getService([
